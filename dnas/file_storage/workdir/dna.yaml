@@ -1,0 +1,28 @@
+---
+# D-Cloud DNA Manifest — Holochain 0.3.6
+# Both WASM paths resolve relative to the workspace target directory.
+manifest_version: "1"
+name: file_storage
+
+integrity:
+  origin_time: "2026-01-01T00:00:00.000000000Z"
+  # network_seed: leave null so conductors on the same machine join the same DHT.
+  # Change this to a unique value to create isolated test networks.
+  network_seed: ~
+  properties:
+    # Custom application properties readable by coordinator via dna_info().
+    # NOTE: this is NOT the network replication factor (that is configured per
+    # conductor). This value is stored in FileManifest to tell downloaders what
+    # redundancy the uploader requested.
+    replication_factor: 5
+    chunk_size_bytes: 65536
+  zomes:
+    - name: file_storage_integrity
+      bundled: "../../../target/wasm32-unknown-unknown/release/file_storage_integrity.wasm"
+
+coordinator:
+  zomes:
+    - name: file_storage
+      bundled: "../../../target/wasm32-unknown-unknown/release/file_storage.wasm"
+      dependencies:
+        - name: file_storage_integrity

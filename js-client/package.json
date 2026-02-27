@@ -1,0 +1,79 @@
+{
+  "name": "@holochain/client",
+  "version": "0.21.0-dev.2",
+  "description": "A JavaScript client for the Holochain Conductor API",
+  "author": "Holochain Foundation <info@holochain.org> (https://holochain.org)",
+  "license": "CAL-1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holochain/holochain-client-js.git"
+  },
+  "keywords": [
+    "holochain",
+    "client",
+    "conductor api"
+  ],
+  "bugs": {
+    "url": "https://github.com/holochain/holochain-client-js/issues"
+  },
+  "homepage": "https://github.com/holochain/holochain-client-js#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "lint": "eslint --fix --ext .ts src test eslint.config.cjs",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test:app-agent": "RUST_LOG=error RUST_BACKTRACE=1 vitest run app-websocket",
+    "test:utils": "RUST_LOG=error RUST_BACKTRACE=1 vitest run utils",
+    "test": "RUST_LOG=error RUST_BACKTRACE=1 vitest run",
+    "build:lib": "rimraf ./lib && tsc -p tsconfig.build.json",
+    "build:docs": "api-extractor run --local && api-documenter markdown -i docs/temp -o docs",
+    "build": "npm run build:lib && npm run build:docs",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
+  "dependencies": {
+    "@bitgo/blake2b": "^3.2.4",
+    "@msgpack/msgpack": "^3.1.2",
+    "emittery": "^1.2.0",
+    "isomorphic-ws": "^5.0.0",
+    "js-base64": "^3.7.8",
+    "js-sha512": "^0.9.0",
+    "libsodium-wrappers": "^0.8",
+    "lodash-es": "^4.17.21",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.1",
+    "@microsoft/api-documenter": "^7.28.1",
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/js-yaml": "4.0.9",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "@types/lodash-es": "^4.17.12",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-tsdoc": "^0.5.0",
+    "get-port": "^7.1.0",
+    "globals": "^16.5.0",
+    "js-yaml": "^4.1.1",
+    "prettier": "^3.7.3",
+    "rimraf": "^6.1.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

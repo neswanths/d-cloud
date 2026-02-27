@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "dnas/file_storage/zomes/integrity",
+    "dnas/file_storage/zomes/coordinator",
+]
+
+# Shared workspace-level dependency versions.
+# ALL crate versions are pinned — do not change without explicit instruction.
+[workspace.dependencies]
+hdi    = { version = "0.4.6" }
+hdk    = { version = "0.3.6" }
+serde  = { version = "=1.0.203", features = ["derive"] }
+
+# Crypto crates — all compile to wasm32-unknown-unknown
+# Declared 2026-02-24 before first use in integrity zome (per golden rule)
+sha2          = "0.10.8"
+hex           = "0.4.3"
+ed25519-dalek = { version = "2.1.1", default-features = false, features = ["alloc"] }
+# Declared 2026-02-24: used in coordinator zome for ActionHash encoding
+base64        = "0.21.7"
+
+# WASM build profile — optimised for size (DHT entries are size-sensitive)
+[profile.release]
+opt-level    = "z"     # optimise for binary size
+lto          = true
+codegen-units = 1
+panic        = "abort" # required for wasm32-unknown-unknown
+
+[profile.dev]
+opt-level = 0
+debug      = true

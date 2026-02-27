@@ -1,0 +1,30 @@
+16:from .headers import (
+32:    Origin,
+56:        origin: value of the ``Origin`` header. This is useful when connecting
+57:            to a server that validates the ``Origin`` header to defend against
+76:        origin: Optional[Origin] = None,
+90:        self.origin = origin
+95:    def connect(self) -> Request:
+101:        You can modify it before sending it, for example to add HTTP headers.
+107:        headers = Headers()
+109:        headers["Host"] = build_host(
+114:            headers["Authorization"] = build_authorization_basic(*self.wsuri.user_info)
+116:        if self.origin is not None:
+117:            headers["Origin"] = self.origin
+119:        headers["Upgrade"] = "websocket"
+120:        headers["Connection"] = "Upgrade"
+121:        headers["Sec-WebSocket-Key"] = self.key
+122:        headers["Sec-WebSocket-Version"] = "13"
+125:            extensions_header = build_extension(
+131:            headers["Sec-WebSocket-Extensions"] = extensions_header
+134:            protocol_header = build_subprotocol(self.available_subprotocols)
+135:            headers["Sec-WebSocket-Protocol"] = protocol_header
+137:        return Request(self.wsuri.resource_name, headers)
+154:        headers = response.headers
+157:            [parse_connection(value) for value in headers.get_all("Connection")], []
+166:            [parse_upgrade(value) for value in headers.get_all("Upgrade")], []
+170:        # checking the Upgrade header. It's supposed to be 'WebSocket'.
+175:            s_w_accept = headers["Sec-WebSocket-Accept"]
+181:                "more than one Sec-WebSocket-Accept header found",
+187:        self.extensions = self.process_extensions(headers)
+189:        self.subprotocol = self.process_subprotocol(headers)

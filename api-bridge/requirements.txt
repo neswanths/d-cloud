@@ -1,0 +1,36 @@
+# =============================================================================
+# D-Cloud FastAPI Bridge — Python Dependencies
+# ALL versions are pinned with == (exact). Do NOT use >=, ~=, or ^ ranges.
+# Do not add or change any version without explicit instruction.
+# Compatible with Python 3.11.9
+# =============================================================================
+
+# --- Web Framework ---
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+
+# --- File Upload ---
+python-multipart==0.0.9
+
+# --- Environment Config ---
+python-dotenv==1.0.1
+
+# --- Holochain Conductor WebSocket Client ---
+# No official Python conductor client exists for holochain 0.3.x.
+# We implement the msgpack wire protocol manually using these two:
+websockets==12.0
+# CHANGED: 1.0.8 → 1.1.2 — no cp314 wheel exists for 1.0.8 (Python 3.14 on this system)
+# API compatibility confirmed: packb/unpackb signatures unchanged between 1.0.x and 1.1.x
+msgpack==1.1.2
+
+# --- Cryptography (Ed25519 signing + SHA-256 hashing) ---
+cryptography==42.0.5
+pynacl==1.5.0
+
+# --- Testing ---
+pytest==8.1.1
+pytest-asyncio==0.23.6
+httpx==0.27.0          # async test client for FastAPI (replaces requests in tests)
+
+# --- General HTTP (non-test use, e.g. health probes) ---
+requests==2.31.0

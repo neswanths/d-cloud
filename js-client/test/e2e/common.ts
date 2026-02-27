@@ -1,0 +1,420 @@
+import fs from "fs";
+import assert from "node:assert/strict";
+import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import * as readline from "node:readline";
+import {
+  AdminWebsocket,
+  AppWebsocket,
+  CellId,
+  CellType,
+  CoordinatorBundle,
+  InstalledAppId,
+  IssueAppAuthenticationTokenResponse,
+} from "../../src";
+import getPort from "get-port";
+
+export const FIXTURE_PATH = "./test/e2e/fixture";
+
+const BOOTSTRAP_SERVER_STARTUP_STRING = "#kitsune2_bootstrap_srv#listening#";
+const LAIR_PASSPHRASE = "passphrase";
+
+export interface ConnectionServices {
+  servicesProcess: ChildProcessWithoutNullStreams;
+  bootstrapServerUrl: URL;
+  relayServerUrl: URL;
+}
+
+export const runLocalServices = async () => {
+  const servicesProcess = spawn("kitsune2-bootstrap-srv");
+  return new Promise<ConnectionServices>((resolve, reject) => {
+    servicesProcess.on("error", () => {
+      reject("Failed to spawn kitsune2-bootstrap-srv");
+    });
+    servicesProcess.stdout.on("data", (data: Buffer) => {
+      // uncomment for debug output
+      // console.log(data.toString());
+      const processData = data.toString();
+      if (processData.includes(BOOTSTRAP_SERVER_STARTUP_STRING)) {
+        const listeningAddress = processData
+          .split(BOOTSTRAP_SERVER_STARTUP_STRING)[1]
+          .split("#")[0];
+        const bootstrapServerUrl = new URL(`http://${listeningAddress}`);
+        const relayServerUrl = new URL(`http://${listeningAddress}`);
+        resolve({
+          servicesProcess,
+          bootstrapServerUrl,
+          relayServerUrl,
+        });
+      }
+    });
+    servicesProcess.stderr.on("data", (data) => console.log(data.toString()));
+  });
+};
+
+export const stopLocalServices = (
+  localServicesProcess: ChildProcessWithoutNullStreams,
+) => {
+  if (localServicesProcess.pid === undefined || localServicesProcess.killed) {
+    return Promise.resolve(null);
+  }
+  return new Promise<number | null>((resolve) => {
+    localServicesProcess.on("exit", (code) => {
+      localServicesProcess?.removeAllListeners();
+      localServicesProcess?.stdout.removeAllListeners();
+      localServicesProcess?.stderr.removeAllListeners();
+      resolve(code);
+    });
+    localServicesProcess.kill();
+  });
+};
+
+export const launch = async (
+  port: number,
+  bootstrapServerUrl: URL,
+  relayServerUrl: URL,
+) => {
+  // create sandbox conductor
+  const args = [
+    "sandbox",
+    "--piped",
+    "create",
+    "--in-process-lair",
+    "network",
+    "--bootstrap",
+    bootstrapServerUrl.href,
+    "quic",
+    relayServerUrl.href,
+  ];
+  const createConductorProcess = spawn("hc", args);
+  createConductorProcess.stdin.write(LAIR_PASSPHRASE);
+  createConductorProcess.stdin.end();
+
+  let conductorIndex: number | undefined;
+
+  const createConductorPromise = new Promise<void>((resolve) => {
+    createConductorProcess.stderr.on("data", (data) => {
+      console.error("[hc sandbox] ERROR: ", data.toString());
+    });
+
+    const rl = readline.createInterface({
+      input: createConductorProcess.stdout,
+    });
+    let sandboxCreatedPreviousLine = false;
+    rl.on("line", (line) => {
+      // uncomment for debug output
+      // console.log(line);
+      if (sandboxCreatedPreviousLine) {
+        // We expect a string like 0:/tmp/nix-shell.Rv7Omo/8wBJlBfszYZi1I6gZr3Cc now
+        // where the number in front of the ':' is the conductor index
+        conductorIndex = parseInt(line.split(":")[0]);
+        sandboxCreatedPreviousLine = false;
+      }
+      // If this string occurs, then the next line will contain the conductor
+      // index and directory
+      if (line.includes("Created 1 sandbox")) {
+        sandboxCreatedPreviousLine = true;
+      }
+    });
+    createConductorProcess.stdout.on("end", () => {
+      resolve();
+    });
+  });
+  await createConductorPromise;
+
+  if (
+    typeof conductorIndex !== "number" ||
+    !Number.isInteger(conductorIndex) ||
+    conductorIndex < 0
+  )
+    throw new Error("Failed to determine index of recently started conductor.");
+
+  // start sandbox conductor
+  const runConductorProcess = spawn(
+    "hc",
+    ["sandbox", "--piped", `-f=${port}`, "run", `${conductorIndex}`],
+    {
+      detached: true, // create a process group; without this option, killing
+      // the process doesn't kill the conductor
+    },
+  );
+  runConductorProcess.stdin.write(LAIR_PASSPHRASE);
+  runConductorProcess.stdin.end();
+
+  const runConductorPromise = new Promise<void>((resolve) => {
+    runConductorProcess.stdout.on("data", (data: Buffer) => {
+      const isConductorStarted = data
+        .toString()
+        .includes("Connected successfully to a running holochain");
+      if (isConductorStarted) {
+        // this is the last output of the startup process
+        resolve();
+      }
+    });
+  });
+  // uncomment for conductor debug output
+  // runConductorProcess.stdout.on("data", (data: Buffer) => {
+  // console.log(data.toString());
+  // });
+  runConductorProcess.stderr.on("data", (data: Buffer) => {
+    console.error(data.toString());
+  });
+  await runConductorPromise;
+  return runConductorProcess;
+};
+
+export const cleanSandboxConductors = () => {
+  const cleanSandboxConductorsProcess = spawn("hc", ["sandbox", "clean"]);
+  return new Promise<void>((resolve) => {
+    cleanSandboxConductorsProcess.stdout.on("end", () => {
+      resolve();
+    });
+  });
+};
+
+export const stopConductor = (
+  conductorProcess: ChildProcessWithoutNullStreams,
+) => {
+  if (!conductorProcess.pid || conductorProcess.killed) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise<number | null>((resolve) => {
+    // Set up exit handler before killing
+    conductorProcess.on("exit", (code) => {
+      conductorProcess.removeAllListeners();
+      conductorProcess.stdout.removeAllListeners();
+      conductorProcess.stderr.removeAllListeners();
+
+      resolve(code);
+    });
+
+    if (conductorProcess.pid) {
+      // Kill the entire process group with SIGKILL immediately for faster cleanup
+      process.kill(-conductorProcess.pid, "SIGKILL");
+    }
+  });
+};
+
+export const withApp =
+  (
+    f: (testConductor: TestCase) => Promise<void>,
+    singleUse?: boolean,
+    expirySeconds?: number,
+  ) =>
+  async () => {
+    const adminPort = await getPort({ port: [30_000, 31_000] });
+    // Start local bootstrap + relay server
+    const localServices = await runLocalServices();
+    let conductor: ChildProcessWithoutNullStreams | undefined;
+    try {
+      // Start conductor
+      conductor = await launch(
+        adminPort,
+        localServices.bootstrapServerUrl,
+        localServices.relayServerUrl,
+      );
+      const testCase = await createAppWsAndInstallApp(
+        adminPort,
+        singleUse,
+        expirySeconds,
+      );
+      await testCase.admin_ws.authorizeSigningCredentials(testCase.cell_id);
+      await f(testCase);
+    } catch (e) {
+      console.error("Test caught exception: ", e);
+      throw e;
+    } finally {
+      if (conductor) {
+        await stopConductor(conductor);
+      }
+      await stopLocalServices(localServices.servicesProcess);
+      await cleanSandboxConductors();
+    }
+  };
+
+/**
+ * Start multiple conductors and install the same app in all.
+ * Then run the provided function.
+ * 
+ * @param count Number of conductors to start
+ * @param f Function to call once conductors are ready
+ * @param singleUse Is the app ws authentication token single use
+ * @param expirySeconds App ws authentication token expiration
+ * @returns 
+ */
+export const withAppBatch =
+  (
+    count: number,
+    f: (testConductors: TestCase[]) => Promise<void>,
+    singleUse?: boolean,
+    expirySeconds?: number,
+  ) =>
+  async () => {
+    // Start local bootstrap + relay server
+    const localServices = await runLocalServices();
+    const conductors: ChildProcessWithoutNullStreams[] = [];
+    const testCases: TestCase[] = [];
+    try {
+      // Start conductors
+      for (let i = 0; i < count; i++) {
+        const adminPort = await getPort({ port: [30_000, 31_000] });
+        const conductor = await launch(
+          adminPort,
+          localServices.bootstrapServerUrl,
+          localServices.relayServerUrl,
+        );
+        const testCase = await createAppWsAndInstallApp(
+          adminPort,
+          singleUse,
+          expirySeconds,
+        );
+        await testCase.admin_ws.authorizeSigningCredentials(testCase.cell_id);
+        conductors.push(conductor);
+        testCases.push(testCase);
+      }
+      await f(testCases);
+    } catch (e) {
+      console.error("Test caught exception: ", e);
+      throw e;
+    } finally {
+      for (const i in conductors) {
+        if (conductors[i]) {
+          await stopConductor(conductors[i]);
+        }
+      }
+      await stopLocalServices(localServices.servicesProcess);
+      await cleanSandboxConductors();
+    }
+  };
+
+export const withConductor =
+  (port: number, f: () => Promise<void>) => async () => {
+    // Start local bootstrap + relay server
+    const localServices = await runLocalServices();
+    let conductor: ChildProcessWithoutNullStreams | undefined;
+    try {
+      // Start conductor
+      conductor = await launch(
+        port,
+        localServices.bootstrapServerUrl,
+        localServices.relayServerUrl,
+      );
+      await f();
+    } catch (e) {
+      console.error("Test caught exception: ", e);
+      throw e;
+    } finally {
+      if (conductor) {
+        await stopConductor(conductor);
+      }
+      await stopLocalServices(localServices.servicesProcess);
+      await cleanSandboxConductors();
+    }
+  };
+
+export interface TestCase {
+  installed_app_id: InstalledAppId;
+  cell_id: CellId;
+  app_ws: AppWebsocket;
+  admin_ws: AdminWebsocket;
+}
+
+export const createAppInterfaceAndInstallApp = async (
+  adminPort: number,
+  single_use?: boolean,
+  expiry_seconds?: number,
+): Promise<{
+  installed_app_id: InstalledAppId;
+  cell_id: CellId;
+  appPort: number;
+  appAuthentication: IssueAppAuthenticationTokenResponse;
+  admin: AdminWebsocket;
+}> => {
+  const role_name = "foo";
+  const installed_app_id = "app";
+  const admin = await AdminWebsocket.connect({
+    url: new URL(`ws://localhost:${adminPort}`),
+    wsClientOptions: { origin: "client-test-admin" },
+  });
+  const path = `${FIXTURE_PATH}/test.happ`;
+  const agent = await admin.generateAgentPubKey();
+  const app = await admin.installApp({
+    installed_app_id,
+    agent_key: agent,
+    source: {
+      type: "path",
+      value: path,
+    },
+  });
+  assert(app.cell_info[role_name][0].type === CellType.Provisioned);
+  const cell_id = app.cell_info[role_name][0].value.cell_id;
+  await admin.enableApp({ installed_app_id });
+  const { port: appPort } = await admin.attachAppInterface({
+    allowed_origins: "client-test-app",
+  });
+  const appAuthentication = await admin.issueAppAuthenticationToken({
+    installed_app_id,
+    // only add properties if provided, otherwise deserialization fails
+    ...(single_use !== undefined && { single_use }),
+    ...(expiry_seconds !== undefined && { expiry_seconds }),
+  });
+  return { installed_app_id, cell_id, appPort, appAuthentication, admin };
+};
+
+export const createAppWsAndInstallApp = async (
+  adminPort: number,
+  singleUse?: boolean,
+  expirySeconds?: number,
+): Promise<TestCase> => {
+  const { installed_app_id, cell_id, appPort, appAuthentication, admin } =
+    await createAppInterfaceAndInstallApp(adminPort, singleUse, expirySeconds);
+  const client = await AppWebsocket.connect({
+    url: new URL(`ws://localhost:${appPort}`),
+    wsClientOptions: { origin: "client-test-app" },
+    defaultTimeout: 12000,
+    token: appAuthentication.token,
+  });
+  return { installed_app_id, cell_id, app_ws: client, admin_ws: admin };
+};
+
+export async function makeCoordinatorZomeBundle(): Promise<CoordinatorBundle> {
+  const wasm = fs.readFileSync(
+    `${process.cwd()}/target/wasm32-unknown-unknown/release/coordinator2.wasm`,
+    null,
+  );
+
+  return {
+    manifest: {
+      zomes: [
+        {
+          path: "coordinator2",
+          name: "coordinator2",
+          dependencies: [],
+        },
+      ],
+    },
+    resources: {
+      coordinator2: new Uint8Array(wasm.buffer),
+    },
+  };
+}
+
+export async function retryUntilTimeout(
+  cb: () => Promise<boolean>,
+  timeoutMsg: string,
+  intervalMs: number,
+  timeoutMs: number,
+): Promise<void> {
+  const startTime = Date.now();
+  let result;
+  do {
+    result = await cb();
+    const currentTime = Date.now();
+    if (currentTime - startTime >= timeoutMs)
+      throw Error(`Timeout of ${timeoutMs} ms has passed, but ${timeoutMsg}`);
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, intervalMs);
+    });
+  } while (!result);
+}

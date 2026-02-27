@@ -1,0 +1,18 @@
+[package]
+name    = "file_storage"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name      = "file_storage"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hdk  = { workspace = true }
+hdi  = { workspace = true }
+serde = { workspace = true }
+hex  = { workspace = true }
+base64 = { workspace = true }
+
+# Local path dep: share entry/link type enums with integrity zome
+file_storage_integrity = { path = "../integrity" }

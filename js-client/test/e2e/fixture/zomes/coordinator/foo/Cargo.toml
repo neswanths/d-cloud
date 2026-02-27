@@ -1,0 +1,13 @@
+[package]
+authors = ["thedavidmeister", "thedavidmeister@gmail.com"]
+edition = "2021"
+name = "test_wasm_foo"
+version = "0.0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "test_wasm_foo"
+
+[dependencies]
+hdk = { workspace = true }
+test_wasm_foo_integrity = { workspace = true }

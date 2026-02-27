@@ -1,0 +1,11 @@
+# Block the folder that causes the fatal crash
+target/
+
+# Block the massive local node databases and logs
+.demo/
+*.log
+node_data_node*
+
+# Block standard Python and JS junk
+__pycache__/
+node_modules/

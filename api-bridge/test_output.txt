@@ -1,0 +1,604 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-8.1.1, pluggy-1.6.0 -- C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge
+plugins: anyio-4.12.1, asyncio-0.23.6
+asyncio: mode=Mode.STRICT
+collecting ... collected 27 items
+
+tests/test_crypto.py::TestEd25519::test_sign_and_verify_roundtrip PASSED [  3%]
+tests/test_crypto.py::TestEd25519::test_wrong_message_fails PASSED       [  7%]
+tests/test_crypto.py::TestEd25519::test_corrupted_signature_fails PASSED [ 11%]
+tests/test_crypto.py::TestEd25519::test_wrong_pubkey_fails PASSED        [ 14%]
+tests/test_crypto.py::TestAESGCM::test_encrypt_decrypt_roundtrip PASSED  [ 18%]
+tests/test_crypto.py::TestAESGCM::test_different_nonce_each_call PASSED  [ 22%]
+tests/test_crypto.py::TestAESGCM::test_tampered_ciphertext_rejected PASSED [ 25%]
+tests/test_crypto.py::TestAESGCM::test_wrong_dek_rejected PASSED         [ 29%]
+tests/test_crypto.py::TestAESGCM::test_dek_is_32_bytes PASSED            [ 33%]
+tests/test_crypto.py::TestDEKWrapping::test_wrap_unwrap_roundtrip PASSED [ 37%]
+tests/test_crypto.py::TestDEKWrapping::test_wrapped_dek_correct_length PASSED [ 40%]
+tests/test_crypto.py::TestDEKWrapping::test_wrong_recipient_key_fails PASSED [ 44%]
+tests/test_crypto.py::TestDEKWrapping::test_tampered_wrapped_dek_rejected PASSED [ 48%]
+tests/test_crypto.py::TestHashing::test_sha256_known_value PASSED        [ 51%]
+tests/test_crypto.py::TestHashing::test_root_hash_order_matters PASSED   [ 55%]
+tests/test_crypto.py::TestHashing::test_root_hash_single_chunk PASSED    [ 59%]
+tests/test_crypto.py::TestFullPipeline::test_single_chunk_roundtrip PASSED [ 62%]
+tests/test_crypto.py::TestFullPipeline::test_multi_chunk_roundtrip PASSED [ 66%]
+tests/test_crypto.py::TestFullPipeline::test_tampered_chunk_rejected PASSED [ 70%]
+tests/test_api.py::test_health_endpoint FAILED                           [ 74%]
+tests/test_api.py::test_upload_small_file FAILED                         [ 77%]
+tests/test_api.py::test_upload_then_retrieve FAILED                      [ 81%]
+tests/test_api.py::test_upload_large_file_multi_chunk FAILED             [ 85%]
+tests/test_api.py::test_list_files_after_upload FAILED                   [ 88%]
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404 FAILED     [ 92%]
+tests/test_api.py::test_register_node FAILED                             [ 96%]
+tests/test_api.py::test_empty_file_upload_rejected FAILED                [100%]
+
+================================== FAILURES ===================================
+____________________________ test_health_endpoint _____________________________
+tests\test_api.py:148: in test_health_endpoint
+    r = await client.get("/api/health")
+.venv\Lib\site-packages\httpx\_client.py:1801: in get
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:453: in health
+    status                = "ok" if app_state.pool.connected_count > 0 else "degraded",
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+___________________________ test_upload_small_file ____________________________
+tests\test_api.py:160: in test_upload_small_file
+    r = await client.post(
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:159: in upload_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+__________________________ test_upload_then_retrieve __________________________
+tests\test_api.py:180: in test_upload_then_retrieve
+    up = await client.post(
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:159: in upload_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+_____________________ test_upload_large_file_multi_chunk ______________________
+tests\test_api.py:200: in test_upload_large_file_multi_chunk
+    up = await client.post(
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:159: in upload_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+________________________ test_list_files_after_upload _________________________
+tests\test_api.py:215: in test_list_files_after_upload
+    await client.post(
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:159: in upload_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+_________________ test_retrieve_nonexistent_hash_returns_404 __________________
+tests\test_api.py:228: in test_retrieve_nonexistent_hash_returns_404
+    r = await client.get("/api/file/nonexistent-hash")
+.venv\Lib\site-packages\httpx\_client.py:1801: in get
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:260: in retrieve_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+_____________________________ test_register_node ______________________________
+tests\test_api.py:235: in test_register_node
+    r = await client.post("/api/nodes/register", json={"node_id": "node-1", "status": "online"})
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:431: in register_node
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+_______________________ test_empty_file_upload_rejected _______________________
+tests\test_api.py:243: in test_empty_file_upload_rejected
+    r = await client.post(
+.venv\Lib\site-packages\httpx\_client.py:1892: in post
+    return await self.request(
+.venv\Lib\site-packages\httpx\_client.py:1574: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:1661: in send
+    response = await self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:1689: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:1726: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1763: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv\Lib\site-packages\httpx\_transports\asgi.py:164: in handle_async_request
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\cors.py:83: in __call__
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:758: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:778: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:299: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:79: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:64: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:74: in app
+    response = await func(request)
+.venv\Lib\site-packages\fastapi\routing.py:278: in app
+    raw_response = await run_endpoint_function(
+.venv\Lib\site-packages\fastapi\routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+main.py:159: in upload_file
+    _require_conductors()
+main.py:142: in _require_conductors
+    if app_state.pool.connected_count == 0:
+E   AttributeError: 'NoneType' object has no attribute 'connected_count'
+============================== warnings summary ===============================
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:166: 1118 warnings
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:166: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    return asyncio.iscoroutinefunction(obj) or inspect.isasyncgenfunction(obj)
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:429: 27 warnings
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:429: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    return asyncio.iscoroutinefunction(func)
+
+tests/test_crypto.py::TestEd25519::test_sign_and_verify_roundtrip
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:996: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    return asyncio.get_event_loop_policy()
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:749: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    _restore_event_loop_policy(asyncio.get_event_loop_policy()),
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:968: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(new_loop_policy)
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:969: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:764: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    policy = asyncio.get_event_loop_policy()
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_health_endpoint
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\fastapi\routing.py:211: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    is_coroutine = asyncio.iscoroutinefunction(dependant.call)
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\starlette\_utils.py:42: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    return asyncio.iscoroutinefunction(obj) or (
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:811: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    policy = asyncio.get_event_loop_policy()
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:837: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(previous_policy)
+
+tests/test_api.py::test_health_endpoint
+tests/test_api.py::test_upload_small_file
+tests/test_api.py::test_upload_then_retrieve
+tests/test_api.py::test_upload_large_file_multi_chunk
+tests/test_api.py::test_list_files_after_upload
+tests/test_api.py::test_retrieve_nonexistent_hash_returns_404
+tests/test_api.py::test_register_node
+tests/test_api.py::test_empty_file_upload_rejected
+  C:\Users\neswa\.gemini\antigravity\scratch\d-cloud\api-bridge\.venv\Lib\site-packages\pytest_asyncio\plugin.py:849: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    policy = asyncio.get_event_loop_policy()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_api.py::test_health_endpoint - AttributeError: 'NoneType' o...
+FAILED tests/test_api.py::test_upload_small_file - AttributeError: 'NoneType'...
+FAILED tests/test_api.py::test_upload_then_retrieve - AttributeError: 'NoneTy...
+FAILED tests/test_api.py::test_upload_large_file_multi_chunk - AttributeError...
+FAILED tests/test_api.py::test_list_files_after_upload - AttributeError: 'Non...
+FAILED tests/test_api.py::test_retrieve_nonexistent_hash_returns_404 - Attrib...
+FAILED tests/test_api.py::test_register_node - AttributeError: 'NoneType' obj...
+FAILED tests/test_api.py::test_empty_file_upload_rejected - AttributeError: '...
+================= 8 failed, 19 passed, 1216 warnings in 1.27s =================

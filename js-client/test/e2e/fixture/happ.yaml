@@ -1,0 +1,15 @@
+---
+manifest_version: "0"
+name: foo-test
+description: ""
+roles:
+  - name: foo
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      path: ./test.dna
+      modifiers:
+        properties: ~
+        network_seed: ~
+      clone_limit: 10

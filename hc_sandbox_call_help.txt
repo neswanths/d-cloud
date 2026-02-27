@@ -1,0 +1,157 @@
+Make a call to a conductor's
+admin interface
+
+Usage: hc sandbox call [OPTIONS] [INDICES]... <COMMAND>
+
+Commands:
+  add-admin-ws
+          Calls
+          AdminRequest::AddAdminInterfaces
+          and adds another
+          admin interface
+  add-app-ws
+          Calls
+          AdminRequest::AttachAppInterface
+          and adds another
+          app interface
+  register-dna
+          Calls
+          AdminRequest::RegisterDna
+          and registers a
+          DNA. You can only
+          use a path or a
+          hash, not both
+  install-app
+          Calls
+          AdminRequest::InstallApp
+          and installs a new
+          app
+  uninstall-app
+          Calls
+          AdminRequest::UninstallApp
+  list-app-ws
+          Calls
+          AdminRequest::ListAppInterfaces
+  list-dnas
+          Calls
+          AdminRequest::ListDnas
+  new-agent
+          Calls
+          AdminRequest::GenerateAgentPubKey
+  list-cells
+          Calls
+          AdminRequest::ListCellIds
+  list-apps
+          Calls
+          AdminRequest::ListApps
+  enable-app
+          Calls
+          AdminRequest::EnableApp
+          and activates the
+          installed app
+  disable-app
+          Calls
+          AdminRequest::DisableApp
+          and disables the
+          installed app
+  dump-state
+          Calls
+          AdminRequest::DumpState
+          and dumps the
+          current cell's
+          state
+  dump-conductor-state
+          
+  add-agents
+          Calls
+          AdminRequest::AddAgentInfo.
+          _Unimplemented_
+  list-agents
+          Calls
+          AdminRequest::RequestAgentInfo
+          and pretty prints
+          the agent info on
+          this conductor
+  help
+          Print this message
+          or the help of the
+          given
+          subcommand(s)
+
+Arguments:
+  [INDICES]...
+          Run a selection of
+          existing conductor
+          sandboxes from
+          those specified in
+          `$(pwd)/.hc`.
+          Existing sandboxes
+          and their indices
+          are visible via
+          `hc list`. Use the
+          zero-based index
+          to choose which
+          sandboxes to use.
+          For example `hc
+          sandbox run 1 3 5`
+          or `hc sandbox run
+          1`
+
+Options:
+  -r, --running <RUNNING>                Ports
+                                         to
+                                         running
+                                         conductor
+                                         admin
+                                         interfaces.
+                                         If
+                                         this
+                                         is
+                                         empty
+                                         existing
+                                         sandboxes
+                                         will
+                                         be
+                                         used.
+                                         Cannot
+                                         be
+                                         combined
+                                         with
+                                         existing
+                                         sandboxes
+  -e, --existing-paths <EXISTING_PATHS>  Paths
+                                         to
+                                         existing
+                                         sandbox
+                                         directories.
+                                         For
+                                         example
+                                         `hc
+                                         sandbox
+                                         run
+                                         -e=/tmp/kAOXQlilEtJKlTM_W403b,/tmp/kddsajkaasiIII_sJ`
+  -a, --all                              Run
+                                         all
+                                         the
+                                         existing
+                                         conductor
+                                         sandboxes
+                                         specified
+                                         in
+                                         `$(pwd)/.hc`
+  -l, --last                             Run
+                                         the
+                                         last
+                                         created
+                                         conductor
+                                         sandbox
+                                         --
+                                         that
+                                         is,
+                                         the
+                                         last
+                                         line
+                                         in
+                                         `$(pwd)/.hc`
+  -h, --help                             Print
+                                         help

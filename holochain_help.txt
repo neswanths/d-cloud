@@ -1,0 +1,22 @@
+holochain 0.3.6
+The Holochain Conductor.
+
+USAGE:
+    holochain [FLAGS] [OPTIONS]
+
+FLAGS:
+        --build-info    Display version information such as git revision and HDK version
+    -h, --help          Prints help information
+    -p, --piped         Instead of the normal "interactive" method of passphrase retrieval, read the passphrase from
+                        stdin. Be careful how you make use of this, as it could be less secure, for example, make sure
+                        it is not saved in your `~/.bash_history`
+    -V, --version       Prints version information
+
+OPTIONS:
+    -c, --config-path <config-path>    Path to a YAML file containing conductor configuration
+        --structured <structured>      Outputs structured json from logging:
+                                           - None: No logging at all (fastest)
+                                           - Log: Output logs to stdout with spans (human readable)
+                                           - Compact: Same as Log but with less information
+                                           - Json: Output logs as structured json (machine readable)
+                                            [default: Log]
