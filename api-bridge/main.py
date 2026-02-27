@@ -176,8 +176,18 @@ async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
     # Merkle-style root hash over ciphertext hashes
     root_hash = cr.compute_root_hash(chunk_hashes)
 
-    # Wrap DEK for the recipient (X25519 ECDH)
-    wrapped_dek = cr.wrap_dek(dek, app_state.recipient_keypair.pubkey_hex)
+    # ── P2P Identity: Multi-Recipient DEK Wrapping ──
+    # Wrap the DEK for our own public key AND every peer's public key
+    # This allows any peer in the network to retrieve and decrypt the file independently
+    recipients = {app_state.recipient_keypair.pubkey_hex}
+    recipients.update(app_state.pool.peer_pubkeys())
+    
+    wrapped_deks = {}
+    for pubkey in recipients:
+        try:
+            wrapped_deks[pubkey] = cr.wrap_dek(dek, pubkey)
+        except Exception as e:
+            log.warning("Failed to wrap DEK for peer %s: %s", pubkey[:12], e)
 
     # Build manifest dict (used as the canonical record)
     manifest_hash = hashlib.sha256(
@@ -195,7 +205,10 @@ async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
         "chunk_action_hashes": chunk_manifest_refs,   # chunk_hash list
         "redundancy_factor":   REDUNDANCY,
         "uploader_pubkey":     app_state.signing_keypair.pubkey_hex,
-        "wrapped_dek":         wrapped_dek,
+        # Legacy/fallback field for backwards compatibility
+        "wrapped_dek":         wrapped_deks.get(app_state.recipient_keypair.pubkey_hex), 
+        # P2P field: map of { pubkey_hex: wrapped_dek_hex }
+        "wrapped_deks":        wrapped_deks,
         "recipient_pubkey":    app_state.recipient_keypair.pubkey_hex,
         "dek_algorithm":       "AES-256-GCM",
         "uploaded_at":         int(time.time()),
@@ -240,10 +253,26 @@ async def retrieve_file(manifest_hash: str) -> Response:
 
     log.info("Retrieving '%s' — %d chunks", manifest.get("name"), manifest.get("total_chunks"))
 
-    # 2. Unwrap DEK
+    # 2. Unwrap DEK (P2P Identity Aware)
+    my_pubkey = app_state.recipient_keypair.pubkey_hex
+    wrapped_deks_dict = manifest.get("wrapped_deks", {})
+    
+    if "wrapped_dek" in manifest and not wrapped_deks_dict:
+        # Legacy single-recipient file
+        my_wrapped_dek = manifest["wrapped_dek"]
+    else:
+        # P2P multi-recipient file — find the DEK wrapped for OUR specific identity
+        my_wrapped_dek = wrapped_deks_dict.get(my_pubkey)
+
+    if not my_wrapped_dek:
+        raise HTTPException(
+            status_code=403,
+            detail=f"No decryption key available for this node's identity ({my_pubkey[:12]}…)",
+        )
+
     try:
         dek = cr.unwrap_dek(
-            manifest["wrapped_dek"],
+            my_wrapped_dek,
             app_state.recipient_keypair.private_key,
         )
     except Exception as exc:

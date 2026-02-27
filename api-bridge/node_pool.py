@@ -35,6 +35,9 @@ class Node:
     node_id: str        # e.g. "node1"
     _live: bool = field(default=True, repr=False)
     _health: dict = field(default_factory=dict, repr=False)
+    # P2P identity — populated from /health on each ping
+    recipient_pubkey: str = field(default="", repr=False)  # X25519 hex pubkey
+    signing_pubkey:   str = field(default="", repr=False)  # Ed25519 hex pubkey
 
     @property
     def live(self) -> bool:
@@ -50,6 +53,9 @@ class Node:
             r = await client.get(f"{self.url}/health", timeout=3.0)
             if r.status_code == 200:
                 self._health = r.json()
+                # Cache the node's P2P public keys for DEK wrapping
+                self.recipient_pubkey = self._health.get("recipient_pubkey", "")
+                self.signing_pubkey   = self._health.get("signing_pubkey", "")
                 return True
         except Exception:
             pass
@@ -122,6 +128,10 @@ class NodePool:
     @property
     def connected_count(self) -> int:
         return len(self.live_nodes)
+
+    def peer_pubkeys(self) -> List[str]:
+        """Return X25519 public keys of all nodes that have announced their P2P identity."""
+        return [n.recipient_pubkey for n in self.nodes if n.recipient_pubkey]
 
     def _client_or_raise(self) -> httpx.AsyncClient:
         if self._client is None:

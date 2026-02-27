@@ -36,6 +36,15 @@ from threading import Lock
 from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
+# ─── P2P Identity (optional — graceful fallback if 'cryptography' not installed)
+try:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+    from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat, PublicFormat
+    _CRYPTO_OK = True
+except ImportError:
+    _CRYPTO_OK = False
+
 
 def _lan_ip() -> str:
     """Return the machine's primary LAN IP (not 127.0.0.1)."""
@@ -65,6 +74,56 @@ _manifests: Dict[str, Any] = {}  # manifest_hash → manifest dict
 _node_id: str = "node1"
 _data_file: str = "node_data_node1.json"
 _started_at: float = time.time()
+
+# ─── P2P Node Identity ────────────────────────────────────────────────────────
+# Populated by _load_or_create_identity() at startup
+_identity: Dict[str, str] = {}   # keys: signing_pubkey_hex, recipient_pubkey_hex
+
+
+def _load_or_create_identity() -> None:
+    """Generate or load this node's Ed25519 + X25519 keypairs. Shares keys with the Bridge."""
+    global _identity
+    if not _CRYPTO_OK:
+        log.warning("'cryptography' package not found — P2P identity disabled. Install with: pip install cryptography")
+        return
+
+    # Share the keys directory with the bridge so the Node advertises the Bridge's decryption keys
+    keys_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-bridge", "keys")
+    os.makedirs(keys_dir, exist_ok=True)
+    
+    signing_key_path   = os.path.join(keys_dir, "bridge_ed25519.key")
+    recipient_key_path = os.path.join(keys_dir, "recipient_x25519.key")
+
+    # ── Ed25519 signing keypair ──
+    if os.path.exists(signing_key_path):
+        signing_privkey = Ed25519PrivateKey.from_private_bytes(open(signing_key_path, "rb").read())
+        log.info("Loaded existing Ed25519 signing key")
+    else:
+        signing_privkey = Ed25519PrivateKey.generate()
+        raw = signing_privkey.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
+        open(signing_key_path, "wb").write(raw)
+        log.info("🔑  Generated NEW Ed25519 signing key → %s", signing_key_path)
+
+    signing_pubkey_hex = signing_privkey.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
+
+    # ── X25519 recipient keypair ──
+    if os.path.exists(recipient_key_path):
+        recipient_privkey = X25519PrivateKey.from_private_bytes(open(recipient_key_path, "rb").read())
+        log.info("Loaded existing X25519 recipient key")
+    else:
+        recipient_privkey = X25519PrivateKey.generate()
+        raw = recipient_privkey.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
+        open(recipient_key_path, "wb").write(raw)
+        log.info("🔑  Generated NEW X25519 recipient key → %s", recipient_key_path)
+
+    recipient_pubkey_hex = recipient_privkey.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()
+
+    _identity = {
+        "signing_pubkey_hex":   signing_pubkey_hex,
+        "recipient_pubkey_hex": recipient_pubkey_hex,
+    }
+    log.info("🆔  Node identity — signing:   %s…", signing_pubkey_hex[:16])
+    log.info("🆔  Node identity — recipient: %s…", recipient_pubkey_hex[:16])
 
 # ─── Persistence ─────────────────────────────────────────────────────────────
 
@@ -160,13 +219,17 @@ class NodeHandler(BaseHTTPRequestHandler):
             with _lock:
                 chunk_count = len(_chunks)
                 manifest_count = len(_manifests)
-            self._send(200, {
-                "node_id": _node_id,
-                "status": "online",
-                "chunks_held": chunk_count,
-                "manifests_held": manifest_count,
-                "uptime_seconds": round(time.time() - _started_at, 1),
-            })
+            health_resp = {
+                "node_id":          _node_id,
+                "status":           "online",
+                "chunks_held":      chunk_count,
+                "manifests_held":   manifest_count,
+                "uptime_seconds":   round(time.time() - _started_at, 1),
+                # P2P identity — public keys only, never private keys
+                "signing_pubkey":   _identity.get("signing_pubkey_hex", ""),
+                "recipient_pubkey": _identity.get("recipient_pubkey_hex", ""),
+            }
+            self._send(200, health_resp)
             return
 
         # GET /list
@@ -296,6 +359,10 @@ def main() -> None:
 
     _node_id  = args.node_id
     _data_file = os.path.join(args.data_dir, f"node_data_{_node_id}.json")
+    data_dir   = args.data_dir
+
+    # ── P2P Identity: generate or load keypairs for this machine ──
+    _load_or_create_identity()
 
     _load()
 
