@@ -1,2 +1,0 @@
-/nix/store/2bpx02w4h86h1mx369wm9xswmrk71l1m-holochain-0.3.6/bin/holochain
-/nix/store/2bpx02w4h86h1mx369wm9xswmrk71l1m-holochain-0.3.6/bin/hc

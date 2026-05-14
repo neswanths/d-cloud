@@ -1,1 +1,0 @@
-[1;34mhc-sandbox:[0m Attached app interfaces [AppInterfaceInfo { port: 9001, allowed_origins: Any, installed_app_id: Some("d-cloud") }]
