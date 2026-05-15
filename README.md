@@ -3,8 +3,11 @@
 > Decentralized, agent-centric cloud storage — no central control plane, no vendor lock-in, no blockchain overhead.
 
 ![Demo](assets/demo.gif)
-[Product Site →](https://neswanths.github.io/public_face_for_d-cloud/)
-[Watch full demo →](https://drive.google.com/file/d/1_mv_s_McooPA5eOnclQVtpPp7hXJhhSR/view?usp=sharing)
+View public face here: 
+[Product Site](https://neswanths.github.io/public_face_for_d-cloud/)
+
+
+[Watch full demo ](https://drive.google.com/file/d/1_mv_s_McooPA5eOnclQVtpPp7hXJhhSR/view?usp=sharing)
 
 ---
 
